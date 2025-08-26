@@ -5,8 +5,8 @@ const port = 3000;                  // Define a porta
 app.get("/", (req, res) => {        // Cria endpoint na rota da raiz do projeto
   console.log("Rota GET / solicitada");
   res.json({
-		message: "API para _____",      // Substitua pelo conteúdo da sua API
-    author: "Seu_nome_completo",    // Substitua pelo seu nome
+		message: "API para a atividade",      // Substitua pelo conteúdo da sua API
+    author: "Vitória Ferraz dos Santos",    // Substitua pelo seu nome
   });
 });
 
