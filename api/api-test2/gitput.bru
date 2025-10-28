@@ -1,0 +1,20 @@
+meta {
+  name: gitput
+  type: http
+  seq: 6
+}
+
+put {
+  url: https://laughing-waddle-v6w45vqvvrj7266rp-3000.app.github.dev/questoes
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "enunciado": "Qual é a capital da Bélgica?",
+    "disciplina": "Geografia",
+    "tema": "Capitais do mundo",
+    "nivel": 3
+  }
+}
