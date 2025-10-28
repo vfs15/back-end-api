@@ -181,6 +181,127 @@ app.put("/questoes/:id", async (req, res) => {
   }
 });
 
+// ROTAS DE USUÁRIOS
+// ----------------------------------------------------------
+
+// GET /usuarios -> lista todos os usuários
+app.get("/usuarios", async (req, res) => {
+  console.log("Rota GET /usuarios solicitada");
+  try {
+    const db = conectarBD();
+    const resultado = await db.query("SELECT id, nome, login, email, tipo FROM usuarios");
+    res.json(resultado.rows);
+  } catch (e) {
+    console.error("Erro ao buscar usuários:", e);
+    res.status(500).json({ erro: "Erro interno do servidor" });
+  }
+});
+
+// GET /usuarios/:id -> retorna um usuário específico
+app.get("/usuarios/:id", async (req, res) => {
+  console.log("Rota GET /usuarios/:id solicitada");
+  try {
+    const id = req.params.id;
+    const db = conectarBD();
+    const resultado = await db.query("SELECT id, nome, login, email, tipo FROM usuarios WHERE id = $1", [id]);
+    if (resultado.rows.length === 0) {
+      return res.status(404).json({ mensagem: "Usuário não encontrado" });
+    }
+    res.json(resultado.rows[0]);
+  } catch (e) {
+    console.error("Erro ao buscar usuário:", e);
+    res.status(500).json({ erro: "Erro interno do servidor" });
+  }
+});
+
+// POST /usuarios -> cria um novo usuário
+app.post("/usuarios", async (req, res) => {
+  console.log("Rota POST /usuarios solicitada");
+  try {
+    const data = req.body;
+
+    // validação básica
+    if (!data.nome || !data.login || !data.senha) {
+      return res.status(400).json({
+        erro: "Dados inválidos",
+        mensagem: "Os campos nome, login e senha são obrigatórios."
+      });
+    }
+
+    const db = conectarBD();
+    const consulta = `
+      INSERT INTO usuarios (nome, login, senha, email, tipo)
+      VALUES ($1, $2, $3, $4, $5)
+    `;
+    const valores = [data.nome, data.login, data.senha, data.email, data.tipo || 'comum'];
+    await db.query(consulta, valores);
+
+    res.status(201).json({ mensagem: "Usuário criado com sucesso!" });
+  } catch (e) {
+    console.error("Erro ao criar usuário:", e);
+    if (e.code === "23505") {
+      res.status(400).json({ erro: "Login já existente" });
+    } else {
+      res.status(500).json({ erro: "Erro interno do servidor" });
+    }
+  }
+});
+
+// PUT /usuarios/:id -> atualiza dados de um usuário
+app.put("/usuarios/:id", async (req, res) => {
+  console.log("Rota PUT /usuarios solicitada");
+  try {
+    const id = req.params.id;
+    const data = req.body;
+    const db = conectarBD();
+
+    // verifica se existe
+    const resultado = await db.query("SELECT * FROM usuarios WHERE id = $1", [id]);
+    if (resultado.rows.length === 0) {
+      return res.status(404).json({ mensagem: "Usuário não encontrado" });
+    }
+
+    const atual = resultado.rows[0];
+    const nome = data.nome || atual.nome;
+    const login = data.login || atual.login;
+    const senha = data.senha || atual.senha;
+    const email = data.email || atual.email;
+    const tipo = data.tipo || atual.tipo;
+
+    const consulta = `
+      UPDATE usuarios
+      SET nome = $1, login = $2, senha = $3, email = $4, tipo = $5
+      WHERE id = $6
+    `;
+    await db.query(consulta, [nome, login, senha, email, tipo, id]);
+
+    res.status(200).json({ mensagem: "Usuário atualizado com sucesso!" });
+  } catch (e) {
+    console.error("Erro ao atualizar usuário:", e);
+    res.status(500).json({ erro: "Erro interno do servidor" });
+  }
+});
+
+// DELETE /usuarios/:id -> exclui um usuário
+app.delete("/usuarios/:id", async (req, res) => {
+  console.log("Rota DELETE /usuarios/:id solicitada");
+  try {
+    const id = req.params.id;
+    const db = conectarBD();
+
+    const resultado = await db.query("SELECT * FROM usuarios WHERE id = $1", [id]);
+    if (resultado.rows.length === 0) {
+      return res.status(404).json({ mensagem: "Usuário não encontrado" });
+    }
+
+    await db.query("DELETE FROM usuarios WHERE id = $1", [id]);
+    res.status(200).json({ mensagem: "Usuário excluído com sucesso!" });
+  } catch (e) {
+    console.error("Erro ao excluir usuário:", e);
+    res.status(500).json({ erro: "Erro interno do servidor" });
+  }
+});
+
 
 app.listen(port, () => {            // Um socket para "escutar" as requisições
   console.log(`Serviço rodando na porta:  ${port}`);
