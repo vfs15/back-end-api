@@ -157,7 +157,7 @@ app.post("/questoes", async (req, res) => {
       erro: "Erro interno do servidor"
     });
   }
-});
+});d
 
 //server.js
 app.put("/questoes/:id", async (req, res) => {
